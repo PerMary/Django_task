@@ -1,0 +1,50 @@
+{% extends 'myapp/base.html' %}
+{% block content %}
+        <a href="{% url 'demand_list' %}">Просмотр всех заявок на закупку</a> -
+        <a href="{% url 'demand_detail' id_demand=demand.id %}">Просмотр конкретной завки на закупку </a>
+        <p align="center"><b>Информация о завке: </b></p>
+        <p><b><i>Дата создания: </i></b> {{ demand.created_date|date:"d.m.Y" }} </p>
+        <p><b><i>Номер заявки: </i></b> {{ demand.id }} </p>
+        <p><b><i>Описание: </i></b> {{ demand.description }} </p>
+        <p><b><i>Количество позиций:</i></b> {{ demand.position_count }} </p>
+        <p><b><i>Количество товаров: </i></b> {{ demand.product_count }}</p>
+        <p><b><i>Общая ст-ть товаров (руб): </i></b>  {{ demand.price_all }}</p>
+        <div align="center">
+            <form>
+                <input type="button" value="Добавить позицию" onClick='location.href="{% url 'position_new' id_demand=demand.id %}"'>
+            </form>
+            <form>
+                <input type="button" value="Сформировать PDF" onClick='location.href="{% url 'create_pdf' id_demand=demand.id %}"'>
+            </form>
+        </div>
+        {% if positions|length > 0 %}
+        <div align="center">
+            <table border="0" width="1300">
+                <thead bgcolor="#C0C0C0">
+                    <tr>
+                        <th align="center">Наименование позиции: </th>
+                        <th align="center">Артикул: </th>
+                        <th align="center">Количество: </th>
+                        <th align="center">Цена за шт (руб): </th>
+                        <th align="center">Общая ст-ть (руб): </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for position in positions %}
+                        <tr>
+                            <td align="center" bgcolor="#FAF0E6">{{ position.id_product }}</td>
+                            <td align="center" bgcolor="#FAF0E6">{{ position.id_product.art }}</td>
+                            <td align="center" bgcolor="#FAF0E6">{{ position.quantity }}</td>
+                            <td align="center" bgcolor="#FAF0E6">{{ position.id_product.price_one }}</td>
+                            <td align="center" bgcolor="#FAF0E6"> {{position.cost}} </td>
+                            <td align="center"><form><input type="button" value="Удалить" onClick='location.href="{% url 'position_remove' id_demand=demand.id id_position=position.id %}"'></form></td>
+                            <td><form><input type="button" value="Редактировать" onClick='location.href="{% url 'position_edit' id_demand=demand.id id_position=position.id %}"'></form></td>
+                        </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p align="center">Нет созданных позиций для данной заявки</p>
+            {% endif %}
+        </div>
+{% endblock %}

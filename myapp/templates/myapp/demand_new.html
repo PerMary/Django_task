@@ -1,0 +1,10 @@
+{% extends 'myapp/base.html' %}
+{% block content %}
+    <a href="{% url 'demand_list' %}">Просмотр всех заявок на закупку</a> - 
+    <a href="{% url 'demand_new' %}">Создание новой заявки</a>
+    <h1>Новая заявка:</h1>
+    <form method="POST" class=""> {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+    </form>	
+{% endblock %}
