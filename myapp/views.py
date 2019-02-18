@@ -8,22 +8,15 @@ from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase import ttfonts
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus.doctemplate import SimpleDocTemplate
-from reportlab.platypus import Paragraph, Spacer
 from reportlab.lib import styles
 from reportlab.lib.units import inch, cm
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 import datetime
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.models import Group, Permission, User
-
-
-#Ограничение доступа
-def non(request):
-	return render(request, 'myapp/non.html')
 
 #Список созданных заявок
 @login_required
@@ -47,12 +40,16 @@ def demand_new(request):
 		form = DemandForm()
 		return render (request, 'myapp/demand_new.html', {'form': form})
 
+#Ограничение доступа
+def non(request):
+	return render(request, 'myapp/non.html')
+
 #Редактирование заявки
 @login_required
 @permission_required('myapp.change_demand', 'non' )
 def demand_edit(request,id_demand):
 	demand = get_object_or_404(Demand, id=id_demand)
-	if demand.user == request.user or request.user.groups.filter(name="Начальники"):
+	if request.user.groups.filter(name="Начальники") or demand.user == request.user:
 		if request.method == "POST":
 			form = DemandForm(request.POST, instance=demand)
 			if form.is_valid():
@@ -61,9 +58,16 @@ def demand_edit(request,id_demand):
 				return redirect('demand_list')
 		else:
 			form = DemandForm(instance=demand)
-			return render (request, 'myapp/demand_edit.html', {'form': form})
+		return render (request, 'myapp/demand_edit.html', {'form': form})
 	else:
 		return render (request, 'myapp/non.html')
+
+#Просмотр конкретной завяки (описание с таблицей позиций)
+# @login_required
+# def demand_detail(request, id_demand):
+# 	demand = get_object_or_404(Demand, id=id_demand)
+# 	positions = Position.objects.filter(id_demand=id_demand)
+# 	return render(request, 'myapp/demand_detail.html', {'demand': demand, 'positions': positions})
 
 #Просмотр конкретной заявки
 @login_required
@@ -91,25 +95,27 @@ def demand_remove(request,id_demand):
 @permission_required('myapp.add_position', 'non' )
 def position_new(request, id_demand):
 	demand = get_object_or_404(Demand, id=id_demand)
-	positions = Position.objects.filter(id_demand=id_demand)
+	# if demand.user != request.user:
+	# 	return render (request, 'myapp/non.html')
 	if request.method == "POST":
 		form = PositionForm(request.POST)
 		if form.is_valid():
-			positions = form.save(commit=False)
-			positions.id_demand = demand 
-			positions.save()
+			position = form.save(commit=False) 
+			position.id_demand = demand
+			position.save()
 			return redirect('demand_detail', id_demand=id_demand)
 	else:
 		form = PositionForm()
 	return render(request, 'myapp/position_new.html', {'demand': demand, 'form': form})
 
-
 #Редактирование позиции
 @login_required
-@permission_required('myapp.change_position', 'non' )
+@permission_required('myapp.change_position', 'non')
 def position_edit(request, id_demand, id_position):
 	position = Position.objects.get(id=id_position)
 	demand = get_object_or_404(Demand, id=id_demand)
+	# if demand.user != request.user:
+	# 	return render (request, 'myapp/non.html')
 	if request.method == "POST":
 		form = PositionForm(request.POST)
 		if form.is_valid():
@@ -119,16 +125,13 @@ def position_edit(request, id_demand, id_position):
 			position.save()
 			return redirect('demand_detail', id_demand=id_demand)
 	else:
-		 form = PositionForm(instance=position)
-	return render(request, 'myapp/position_edit.html', {'form': form})
-	
-	
+		form = PositionForm(instance=position)
+	return render(request, 'myapp/position_new.html', {'demand': demand, 'form': form})
 
 
 #Удаление позиции
-#Удаляет все позиции из заявки, как удалить конкретную позицию?
 @login_required
-@permission_required('myapp.delete_position', 'non' )
+@permission_required('myapp.delete_position', 'non')
 def position_remove(request,id_demand, id_position):
 	demand = get_object_or_404(Demand, id=id_demand)
 	position = Position.objects.get(id=id_position)
@@ -148,7 +151,7 @@ def position_remove(request,id_demand, id_position):
 def create_pdf(request, id_demand, ):
 	demand = get_object_or_404(Demand, id=id_demand)
 	positions = Position.objects.filter(id_demand=id_demand)
-
+ 
 #	Заявка
 	demand_date ="%s" %demand.created_date.strftime('%d.%m.%Y')
 	demand_number = "%s" %demand.id
@@ -156,18 +159,23 @@ def create_pdf(request, id_demand, ):
 	demand_quantity_pos = "%s" %demand.position_count()
 	demand_quantity_prod = "%s" %demand.product_count()
 	demand_price_all = "%s" %demand.price_all()
- 
 
 	filename = 'Demand_' + str(demand.id) +'_detail.pdf'
 	response = HttpResponse(content_type='application/pdf')
 	response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
-	myfont = ttfonts.TTFont('Times', '/home/marina/djangozad/myapp/static/myapp/TIMES.TTF')
+	myfont = ttfonts.TTFont('Times', r'C:\Users\admin\djangopr\myapp\static\myapp\TIMES.TTF')
 	pdfmetrics.registerFont(myfont)
-	
+
+	demand_date = demand.created_date.strftime('%d.%m.%Y')
+	demand_number = "%s" %demand.id
+	demand_description = "%s" %demand.description
+	demand_quantity_pos = "%s" %demand.position_count()
+	demand_quantity_prod = "%s" %demand.product_count()
+	demand_price_all = "%s" %demand.price_all()
+
 	styles = getSampleStyleSheet()
 	temp = BytesIO()
-	p = canvas.Canvas(temp)
 
 #   Стили
 	style_par = ParagraphStyle("text", fontName="Times", 
@@ -191,7 +199,7 @@ def create_pdf(request, id_demand, ):
 										  spaceAfter=0, 
 										  spaceBefore=50,
 										  bulletIndent = 100,
-										  spaceShrinkage = 20 )
+										  )
 	style_footer_d = ParagraphStyle("text", fontName="Times", 
 										  fontSize=12, 
 										  alignment = TA_LEFT, 
@@ -200,14 +208,12 @@ def create_pdf(request, id_demand, ):
 										  bulletIndent = 100,
 										   )
 
-
-#   Описание заявки
 	story = [Spacer(1,0.25*inch)]
 
-#   Шапка документа
+	#   Шапка документа
 	header = Paragraph("Информация по заявке №{0}".format(demand_number), style= style_title)
 	story.append(header)
-	
+
 #   Описание заявки
 	a = Paragraph("Дата создания: {0}".format(demand_date), style= style_par)
 	b = Paragraph("Описание: {0}".format(demand_description), style= style_par)
@@ -220,7 +226,8 @@ def create_pdf(request, id_demand, ):
 	story.append(d)
 	story.append(e)
 
-	doc2 = SimpleDocTemplate(temp, rightMargin=40, leftMargin=40, topMargin=0, bottomMargin=0)
+
+	doc2 = SimpleDocTemplate(temp, rightMargin=40, leftMargin=40, topMargin=2, bottomMargin=2)
 	blok_table = []
 	title = Paragraph("Позиции в заявке №{0}".format(demand_number), style= style_nametable)
 	story.append(title)
@@ -239,7 +246,7 @@ def create_pdf(request, id_demand, ):
 	for position in positions:
 		tablebody = [["%s" %position.id_product.name_reduction(), "%s" %position.id_product.art, "%s" %position.quantity, "%s" %position.id_product.price_one, "%s" %position.cost()]]
 
-		tabbody=Table(tablebody, colWidths= [7.5 * cm, 4 * cm, 1.5 * cm, 3.5 * cm, 3.5 * cm] )
+		tabbody=Table(tablebody, colWidths=[7.5 * cm, 4 * cm, 1.5 * cm, 3.5 * cm, 3.5 * cm] )
 		tabbody.setStyle(TableStyle([
 			('FONT', (0, 0), (-1, -1), 'Times', 10),
 			('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -250,23 +257,20 @@ def create_pdf(request, id_demand, ):
 
 #   Оформление подвала
 	date_created = datetime.datetime.today().strftime("%d.%m.%Y")
-	user_created = request.user.last_name + ' ' + request.user.first_name + ' '
-	tablefooter = [[u'    Подписи:', u'Дата:      '],
-				   [u'{0}'.format(user_created), u'{0}'.format(date_created)],
-				  ]
-	tabfoo = Table(tablefooter, rowHeights=30, colWidths=200, spaceBefore=50)
-	tabfoo.setStyle(TableStyle([
-		('FONT', (0, 0), (-1, -1), 'Times', 11),
-		('ALIGN', (0, 0), (0, -1), 'LEFT'),
-		('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-		]))
-
-	story.append(tabfoo)
-
+	tablefooter = [[u'Подписи', u'Дата']]
+	tabf = Table(tablefooter, rowHeights=20, colWidths=200  )
+	tabf.setStyle(TableStyle([
+				('FONT', (0, 0), (1, 0), 'Times', 10),
+				('ALIGN', (0, 0), (0, 0), 'LEFT'),
+				('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+				]))
+	story.append(tabf)
+	
 
 	doc2.build(story)
 	pdf = temp.getvalue()
-	temp.close()
 	response.write(pdf)
+	
+	temp.close()
 
 	return response

@@ -6,7 +6,7 @@
     	<p>
     	{% if user.is_authenticated %}
     	    <p align="right">
-                Вы вошли как {{ user.first_name }} {{ user.last_name }}
+                Вы вошли как {{ user.first_name }} {{ user.last_name}}
                 {% if user.is_staff %}
                     <p align="right"><a href="/admin/">Админпанель</a></p>
                 {% endif %}

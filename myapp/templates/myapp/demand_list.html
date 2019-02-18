@@ -7,7 +7,7 @@
     </div>
     <div align="center">
         {% if demands|length > 0 %}
-        <table border="0" width="1100">
+        <table border="0" width="900">
             <thead bgcolor="#C0C0C0">
         		<tr>
         			<th>Дата создания</th>
@@ -16,19 +16,21 @@
             		<th>Описание</th>
             		<th>Кол-во позиций</th>
             		<th>Количество товаров</th>
-            		<th>Общая ст-ть (руб)</th>
+            		<th>Общая стоимость</th>
+                    <!--<th>Общая стоимость с НДС</th>-->
             	</tr>
             </thead>
             <tbody>
             {% for demand in demands %}
                 <tr>
                     <td align="center" bgcolor="#FAF0E6">{{ demand.created_date|date:"d.m.Y" }}</td>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.user.first_name }} {{ demand.user.last_name }}</td>
+                    <td align="center" bgcolor="#FAF0E6">{{ demand.user }}</td>
                     <td align="center" bgcolor="#FAF0E6">{{ demand.id }}</td>
                     <td align="center" bgcolor="#FAF0E6"> <a href="{% url 'demand_detail' id_demand=demand.id %}">{{ demand.description }}</td>
                     <td align="center" bgcolor="#FAF0E6">{{ demand.position_count }}</td>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.product_count }}</td>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.price_all }}</td>
+                    <td align="center" bgcolor="#FAF0E6"> {{ demand.product_count }} </td>
+                    <td align="center" bgcolor="#FAF0E6"> {{ demand.price_all }}</td>
+                    <!--<td align="center" bgcolor="#FAF0E6"> {{ demand.price_all_nds }}</td>-->
                     <td><form><input type="button" value="Удалить" onClick='location.href="{% url 'demand_remove' id_demand=demand.id %}"'></form></td>
                     <td><form><input type="button" value="Редактировать" onClick='location.href="{% url 'demand_edit' id_demand=demand.id %}"'></form></td>
                 </tr>

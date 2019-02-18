@@ -3,7 +3,7 @@
     <a href="{% url 'demand_list' %}">Просмотр всех заявок на закупку</a> - 
     <a href="">Редактирование заявки</a>
     <h1>Редактировать заявку:</h1>
-    <form method="POST" class="table-form"> {% csrf_token %}
+    <form method="POST"> {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Сохранить</button>
     </form>	

@@ -1,7 +1,6 @@
 from django import forms
 
-from .models import Demand
-from .models import Position
+from .models import Demand, Position
 
 #Добавление новой заявки
 class DemandForm(forms.ModelForm):
@@ -15,4 +14,4 @@ class PositionForm(forms.ModelForm):
 
 	class Meta():
 		model = Position
-		fields = ('id_product','quantity',)
+		fields = ( 'id_product','quantity',)
