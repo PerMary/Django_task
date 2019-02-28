@@ -1,0 +1,10 @@
+{% extends 'myapp/base.html' %}
+{% block content %}
+<div class="logout" align="center" class="mdc-text-field__input"> 
+    <h4>Вам необходимо авторизоваться для просмотра данной страницы</h4>
+     <button class="foo-button mdc-button" onClick='location.href="{% url 'users:login' %}"' > Вход</a>
+</div>
+{% block footer %}
+    <p></p>
+{% endblock %}
+{% endblock %}

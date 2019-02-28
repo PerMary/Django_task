@@ -1,9 +1,12 @@
 {% extends 'myapp/base.html' %}
 {% block content %}
 <div align="center">
-    <form method="POST">{% csrf_token %}
-    	    <h2 align="center">Вы уверены, что хотите удалить данную заявку?</h2>
-    <button type="submit">Удалить</button>
-    <button type="button" onClick='location.href="{% url 'demand_list' %}"'>Отменить</button></form>
+	<div class="demand_delete">
+        <form method="POST">{% csrf_token %}
+    	    <h2 class="delete_text">Вы уверены, что хотите удалить данную заявку?</h2>
+            <button class="mdc-button mdc-button--raised" type="submit">Удалить</button>
+            <button class="mdc-button mdc-button--raised" type="button" onClick='location.href="{% url 'demand_list' %}"'>Отменить</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

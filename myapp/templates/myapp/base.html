@@ -1,24 +1,48 @@
+{% load static %}
+{% load material_form %}
 <html>
     <head>
         <title>Web-сервис</title>
+        <link rel="icon" href="data:;base64,=">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <script src="{% static 'js/index.js' %}"></script>
+        <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+        <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
-    <body>
-    	<p>
-    	{% if user.is_authenticated %}
-    	    <p align="right">
-                Вы вошли как {{ user.first_name }} {{ user.last_name}}
-                {% if user.is_staff %}
-                    <p align="right"><a href="/admin/">Админпанель</a></p>
-                {% endif %}
-            </p>
-            <p align="right">
-                <a href="{% url 'users:logout' %}"> Выход</a>
-            </p>
-        {% else %}
-            <a href="{% url 'users:login' %}" > Вход</a>
-        {% endif %}
-        </p>
+      <body >
+        <div class="header_page_auth">
+            {% if user.is_authenticated %}
+                <div class="aaa">
+                    <a href="{% url 'demand_list' %}"><img width=50px height=50px src="{% static 'img/tiger.png' %}"></a>
+                </div>
+                <div class="aaa1">
+                    Вы вошли как {{ user.last_name }}  {{ user.first_name }} {{ user.profile.middle_name }}
+                    {% if user.is_staff %}
+                    <button class="foo-button mdc-button" onClick='location.href="/admin/"'>Админпанель</button>
+                    {% endif %} 
+                    <button class="foo-button mdc-button" onClick='location.href="{% url 'users:logout' %}"'>Выход</button></div>
+                </div>
+        </div>
+            {% endif %}
         {% block content %}
         {% endblock %}
+        {% block footer %}
+            <footer>
+                <div class="style_footer" >
+                    <div class="row">
+                        <hr align="right" width="90%" size="2" color="#dddddd" /> 
+                    </div> 
+                    <div class="footer">
+                        <p><small>Автоматизированная система проектного управления </small><br>
+                        <small>По методологическим вопросам обращаться не к кому </small><br>
+                        <small>По техническим вопросам обращаться не к кому </small><br>
+                        <small>Вообще не нужно обращаться</small></p>
+
+                        </div>
+                </div>
+            </footer>
+        {% endblock %}
     </body>
+
 </html>

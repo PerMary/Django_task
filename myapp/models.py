@@ -57,11 +57,14 @@ class Demand(models.Model):
 			price_all_nds += (position.quantity * position.id_product.price_one)*1.2
 		pon = math.ceil(price_all_nds)
 		return pon
-
-		
+	
 
 	def __str__(self):
 		return self.description
+
+#Создание разрешений
+	class Meta:
+		permissions = (("can_create_document", "Can document creation"), )
 
 #Позиции
 class Position(models.Model):

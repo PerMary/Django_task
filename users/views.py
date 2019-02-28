@@ -5,4 +5,4 @@ from myapp.models import Demand
 
 def logout_view(request): 
 	logout(request)	
-	return render(request, 'users/login.html')
+	return render(request, 'users/logout.html')

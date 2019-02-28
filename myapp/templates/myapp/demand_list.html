@@ -1,44 +1,56 @@
 {% extends 'myapp/base.html' %}
 {% block content %}
-    <div align="center">
-        <form>
-        <input type="button" value="Создание новой заявки" onClick='location.href="{% url 'demand_new' %}"'>
-        </form>
+<head>
+</head>
+<body>
+    <div class="button_demand_new">
+        {% if perms.myapp.add_demand %}
+            <form>
+            <input class="mdc-button mdc-button--raised" type="button" value="Создание новой заявки" onClick='location.href="{% url 'demand_new'  %}"'>
+            </form>
+        {% endif %}
     </div>
     <div align="center">
+        <div class="table_style_demand">
         {% if demands|length > 0 %}
-        <table border="0" width="900">
-            <thead bgcolor="#C0C0C0">
-        		<tr>
-        			<th>Дата создания</th>
-                    <th>Пользователь</th>
-            		<th>№ Заявки</th>
-            		<th>Описание</th>
-            		<th>Кол-во позиций</th>
-            		<th>Количество товаров</th>
-            		<th>Общая стоимость</th>
-                    <!--<th>Общая стоимость с НДС</th>-->
-            	</tr>
-            </thead>
-            <tbody>
+            <table border="0" width="1400">
+                <thead>
+                    <tr>
+                        <th>Дата создания</th>
+                        <th>Пользователь</th>
+                        <th>№ Заявки</th>
+                        <th>Описание</th>
+                        <th>Кол-во позиций</th>
+                        <th>Количество товаров</th>
+                        <th>Общая ст-ть (руб)</th>
+                        <!--<th>Общая ст-ть с НДС 20%</th>-->
+                    </tr>
+                </thead>
+                <tbody>
             {% for demand in demands %}
-                <tr>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.created_date|date:"d.m.Y" }}</td>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.user }}</td>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.id }}</td>
-                    <td align="center" bgcolor="#FAF0E6"> <a href="{% url 'demand_detail' id_demand=demand.id %}">{{ demand.description }}</td>
-                    <td align="center" bgcolor="#FAF0E6">{{ demand.position_count }}</td>
-                    <td align="center" bgcolor="#FAF0E6"> {{ demand.product_count }} </td>
-                    <td align="center" bgcolor="#FAF0E6"> {{ demand.price_all }}</td>
-                    <!--<td align="center" bgcolor="#FAF0E6"> {{ demand.price_all_nds }}</td>-->
-                    <td><form><input type="button" value="Удалить" onClick='location.href="{% url 'demand_remove' id_demand=demand.id %}"'></form></td>
-                    <td><form><input type="button" value="Редактировать" onClick='location.href="{% url 'demand_edit' id_demand=demand.id %}"'></form></td>
-                </tr>
-                {% endfor %}
-               </tbody>
-        </table>
+                    <tr>
+                            <td bgcolor="#d8cce6">{{ demand.created_date|date:"d.m.Y" }}</td>
+                            <td bgcolor="#d8cce6">{{ demand.user.last_name }} {{ demand.user.first_name }} {{ demand.user.profile.middle_name }}</td>
+                            <td bgcolor="#d8cce6">{{ demand.id }}</td>
+                            <td class="str" bgcolor="d8cce6"> <a href="{% url 'demand_detail' id_demand=demand.id %}">{{ demand.description }}</a></td>
+                            <td bgcolor="#d8cce6">{{ demand.position_count }}</td>
+                            <td bgcolor="#d8cce6">{{ demand.product_count }}</td>
+                            <td bgcolor="#d8cce6">{{ demand.price_all }}</td>
+                        <!--<td align="center" bgcolor="#FAF0E6">{{ demand.price_all_nds }}</td>-->
+                            {% if perms.myapp.delete_demand %}
+                                <td><button class="mdc-button mdc-button--outlined" onClick='location.href="{% url 'demand_remove' id_demand=demand.id %}"'><i class="material-icons">delete</i></button></td>
+                            {% endif %}
+                            {% if perms.myapp.change_demand %}
+                                <td><button class="mdc-button mdc-button--outlined" onClick='location.href="{% url 'demand_edit' id_demand=demand.id %}"'><i class="material-icons">create</i></button></td>
+                            {% endif %}
+                    </tr>
+            {% endfor %}
+                </tbody>
+            </table>
         {% else %}
             Нет созданных заявок на закупку
         {% endif %}
+        </div>
     </div>
+</body>
 {% endblock %}

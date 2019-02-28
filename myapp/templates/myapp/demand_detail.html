@@ -1,52 +1,74 @@
 {% extends 'myapp/base.html' %}
 {% block content %}
-        <a href="{% url 'demand_list' %}">Просмотр всех заявок на закупку</a> -
-        <a href="{% url 'demand_detail' id_demand=demand.id %}">Просмотр конкретной завки на закупку </a>
-    	<p align="center"><b>Информация о завке: </b></p>
-    	<p><b><i>Дата создания: </i></b> {{ demand.created_date|date:"d.m.Y" }} </p>
-    	<p><b><i>Номер заявки: </i></b> {{ demand.id }} </p>
-    	<p><b><i>Описание: </i></b> {{ demand.description }} </p>
-    	<p><b><i>Количество позиций: </i></b> {{ demand.position_count }}</p>
-    	<p><b><i>Количество товаров: </i></b> {{ demand.product_count }} </p>
-    	<p><b><i>Общая стоимость товаров: </i></b>{{ demand.price_all }}</p>
-    	<div align="center">
-    	    <form>
-                <input type="button" value="Добавить позицию" onClick='location.href="{% url 'position_new' id_demand=demand.id %}"'>
-            </form>
-            <form>
-                <input type="button" value="Сформировать PDF" onClick='location.href="{% url 'create_pdf' id_demand=demand.id %}"'>
-            </form>
+<html>
+    <head>
+    </head>
+    <body>
+    <body>
+        <div class="header">
+            <button class="foo-button mdc-button" onClick='location.href="{% url 'demand_list' %}"'>Просмотр всех заявок на закупку </button> -
+            <button class="foo-button mdc-button" onClick='location.href="{% url 'demand_detail' id_demand=demand.id %}"'>Просмотр заявки №{{ demand.id }} </button>
+        </div>
+    	<p class="title_info_demand"><b>Информация о завке: </b></p>
+    	<div class="info_demand">
+            <p><b><i>Дата создания: </i></b> {{ demand.created_date|date:"d.m.Y" }} </p>
+            <p><b><i>Номер заявки: </i></b> {{ demand.id }} </p>
+            <p><b><i>Описание: </i></b> {{ demand.description }} </p>
+            <p><b><i>Количество позиций: </i></b> {{ demand.position_count }} </p>
+            <p><b><i>Количество товаров: </i></b> {{ demand.product_count }} </p>
+            <p><b><i>Общая стоимость товаров(руб): </i></b> {{ demand.price_all }} </p>
+        </div>
+    	<div class="button_demand_del_create">
+            {% if perms.myapp.add_position %}
+    	    <p>
+                <button class="mdc-button mdc-button--raised" onClick='location.href="{% url 'position_new' id_demand=demand.id %}"'><i class="material-icons">add</i> Добавить позицию</button>
+            </p>
+            {% endif %}
+            {% if perms.myapp.can_create_document %}
+             <p>
+                <button class="mdc-button mdc-button--raised" onClick='create_pdf()'><i class="material-icons">picture_as_pdf </i> Сформировать PDF</button>
+                <button class="mdc-button mdc-button--raised" onClick='location.href="{% url 'documents:documents_list' id_demand=demand.id %}"'><i class="material-icons">visibility</i>Просмотр всех PDF</button>
+            </p>
+            {% endif %}
         </div>
         {% if positions|length > 0 %}
         <div align="center">
-    		<table border="0" width="1200">
-    			<thead bgcolor="#C0C0C0">
+            <div class="table_style">
+    		<table border="0" width="1100">
+    			<thead>
     				<tr>
-    					<th align="center">Наименование позиции: </th>
-    					<th align="center">Артикул: </th>
-    					<th align="center">Количество: </th>
-    					<th align="center">Цена за 1 шт: </th>
-    					<th align="center">Общая стоимость: </th>
+    					<th>Наименование: </th>
+    					<th>Артикул: </th>
+    					<th>Количество: </th>
+    					<th>Цена за 1 шт: </th>
+    					<th>Общая стоимость: </th>
                         <!--<th align="center">Общая стоимость с НДС:</th>-->
     				</tr>
     			</thead>
     			<tbody>
                 {% for position in positions %}
     				    <tr>
-    					    <td align="center" bgcolor="#FAF0E6">{{ position.id_product }}</td>
-    					    <td align="center" bgcolor="#FAF0E6">{{ position.id_product.art }}</td>
-    					    <td align="center" bgcolor="#FAF0E6">{{ position.quantity }}</td>
-    					    <td align="center" bgcolor="#FAF0E6">{{ position.id_product.price_one }}</td>
-    					    <td align="center" bgcolor="#FAF0E6">{{position.cost}}</td>
+    					    <td bgcolor="#d8cce6">{{ position.id_product }}</td>
+    					    <td bgcolor="#d8cce6">{{ position.id_product.art }}</td>
+    					    <td bgcolor="#d8cce6">{{ position.quantity }}</td>
+    					    <td bgcolor="#d8cce6">{{ position.id_product.price_one }}</td>
+    					    <td bgcolor="#d8cce6">{{position.cost}}</td>
                             <!--<td align="center" bgcolor="#FAF0E6">{{position.cost_nds}}</td>-->
-                            <td align="center"><form><input type="button" value="Удалить" onClick='location.href="{% url 'position_remove' id_demand=demand.id id_position=position.id %}"'></form></td>
-                            <td><form><input type="button" value="Редактировать" onClick='location.href="{% url 'position_edit' id_demand=demand.id id_position=position.id  %}"'></form></td>
+                            {% if perms.myapp.delete_position %}
+                            <td align="center"><button class="mdc-button mdc-button--outlined" onClick='location.href="{% url 'position_remove' id_demand=demand.id id_position=position.id %}"'>
+                            <i class="material-icons">delete</i></button></td>
+                            {% endif %}
+                            {% if perms.myapp.change_position %}
+                            <td><button class="mdc-button mdc-button--outlined" onClick='location.href="{% url 'position_edit' id_demand=demand.id id_position=position.id %}"'><i class="material-icons">create</i></button></td>
+                            {% endif %}
     				    </tr>
                 {% endfor %}
     			</tbody>
     		</table>
             {% else %}
-                <p align="center">Нет созданных позиций для данной заявки</p>
+                <p class="delete_text" align="center">Нет созданных позиций для данной заявки</p>
             {% endif %}
+            </div>
     	</div>
+    </body>
 {% endblock %}

@@ -1,10 +1,20 @@
 {% extends 'myapp/base.html' %}
-{% block content %}
-    <a href="{% url 'demand_list' %}">Просмотр всех заявок на закупку</a> - 
-    <a href="">Редактирование позиции</a>
-    <h1>Редактировать позицию:</h1>
-    <form method="POST"> {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить</button>
-    </form>	
+{% block content %}  
+<head>
+</head>
+<body>
+	<div class="header">
+    </div>
+    <div class="style_form_pos">
+    	<div class="title_form_pos">
+            <h1>Редактировать позицию:</h1>
+        </div>
+        <div class="body_form" >
+            <form method="POST"> {% csrf_token %}
+            {{ form.as_p }}
+            <button class="mdc-button mdc-button--raised" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+</body>
 {% endblock %}

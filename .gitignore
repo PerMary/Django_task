@@ -1,8 +1,6 @@
 *.pyc
-*~
 __pycache__
 myvenv
 .idea
-basedjango
-/static
-.DS_Store
+requirements.txt
+

@@ -1,10 +1,21 @@
 {% extends 'myapp/base.html' %}
 {% block content %}
-    <a href="{% url 'demand_list' %}">Просмотр всех заявок на закупку</a> - 
-    <a href="">Редактирование заявки</a>
-    <h1>Редактировать заявку:</h1>
-    <form method="POST"> {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить</button>
-    </form>	
+{% include 'material/includes/material_css.html' %}
+<head>
+</head>
+<body>
+    <div class="header">
+    </div>
+    <div class="style_form">
+        <div class="title_form">
+            <h1>Редактировать заявку:</h1>
+        </div>
+        <div class="body_form" >
+            <form method="POST" class="table-form"> {% csrf_token %}
+            <p class="">{{ form.as_p }}</p>
+            <button class="mdc-button mdc-button--raised" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>  
+</body>
 {% endblock %}

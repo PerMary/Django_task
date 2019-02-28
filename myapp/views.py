@@ -17,12 +17,17 @@ from reportlab.lib.units import inch, cm
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 import datetime
 from django.contrib.auth.decorators import login_required, permission_required
-
+from django.conf import settings
 #Список созданных заявок
 @login_required
 def demand_list(request):
-	demands = Demand.objects.order_by('created_date')	
-	return render(request, 'myapp/demand_list.html', {'demands': demands})
+	demands = Demand.objects.order_by('created_date')
+	if request.user.groups.filter(name="Начальники") or request.user.groups.filter(name="Админ") or request.user.groups.filter(name="Конструктора") or request.user.groups.filter(name="Экономисты"):
+		print('hello')
+		return render(request, 'myapp/demand_list.html', {'demands': demands})
+	else:
+		demands = Demand.objects.order_by('created_date').filter(user=request.user)
+		return render(request, 'myapp/demand_list.html', {'demands': demands})
 
 #Создание новой заявки
 @login_required
@@ -49,7 +54,7 @@ def non(request):
 @permission_required('myapp.change_demand', 'non' )
 def demand_edit(request,id_demand):
 	demand = get_object_or_404(Demand, id=id_demand)
-	if request.user.groups.filter(name="Начальники") or demand.user == request.user:
+	if request.user.groups.filter(name="Начальники") or demand.user == request.user or request.user.groups.filter(name="Админ"):
 		if request.method == "POST":
 			form = DemandForm(request.POST, instance=demand)
 			if form.is_valid():
@@ -81,7 +86,7 @@ def demand_detail(request, id_demand):
 @permission_required('myapp.delete_demand', 'non' )
 def demand_remove(request,id_demand):
 	demand = get_object_or_404(Demand, id=id_demand)
-	if demand.user == request.user or request.user.groups.filter(name="Начальники"):
+	if demand.user == request.user or request.user.groups.filter(name="Начальники") or request.user.groups.filter(name="Админ"):
 		if request.method == "POST":
 			demand.delete()
 			return redirect('demand_list')
@@ -95,12 +100,10 @@ def demand_remove(request,id_demand):
 @permission_required('myapp.add_position', 'non' )
 def position_new(request, id_demand):
 	demand = get_object_or_404(Demand, id=id_demand)
-	# if demand.user != request.user:
-	# 	return render (request, 'myapp/non.html')
 	if request.method == "POST":
 		form = PositionForm(request.POST)
 		if form.is_valid():
-			position = form.save(commit=False) 
+			position = form.save(commit=False)
 			position.id_demand = demand
 			position.save()
 			return redirect('demand_detail', id_demand=id_demand)
@@ -114,8 +117,6 @@ def position_new(request, id_demand):
 def position_edit(request, id_demand, id_position):
 	position = Position.objects.get(id=id_position)
 	demand = get_object_or_404(Demand, id=id_demand)
-	# if demand.user != request.user:
-	# 	return render (request, 'myapp/non.html')
 	if request.method == "POST":
 		form = PositionForm(request.POST)
 		if form.is_valid():
@@ -126,17 +127,17 @@ def position_edit(request, id_demand, id_position):
 			return redirect('demand_detail', id_demand=id_demand)
 	else:
 		form = PositionForm(instance=position)
-	return render(request, 'myapp/position_new.html', {'demand': demand, 'form': form})
+	return render(request, 'myapp/position_edit.html', {'demand': demand, 'form': form})
 
 
 #Удаление позиции
 @login_required
-@permission_required('myapp.delete_position', 'non')
+#@permission_required('myapp.delete_position', 'non')
 def position_remove(request,id_demand, id_position):
 	demand = get_object_or_404(Demand, id=id_demand)
 	position = Position.objects.get(id=id_position)
-	if demand.user == request.user or request.user.groups.filter(name="Начальники"):
-		if request.method == "POST":	
+	if demand.user == request.user or request.user.groups.filter(name="Начальники") or request.user.groups.filter(name="Админ"):
+		if request.method == "POST":
 			position.id = id_position
 			position.id_demand = demand
 			position.delete()
@@ -148,6 +149,7 @@ def position_remove(request,id_demand, id_position):
 
 #Создание PDF
 @login_required
+@permission_required('myapp.can_create_document', 'non' )
 def create_pdf(request, id_demand, ):
 	demand = get_object_or_404(Demand, id=id_demand)
 	positions = Position.objects.filter(id_demand=id_demand)
@@ -160,7 +162,9 @@ def create_pdf(request, id_demand, ):
 	demand_quantity_prod = "%s" %demand.product_count()
 	demand_price_all = "%s" %demand.price_all()
 
-	filename = 'Demand_' + str(demand.id) +'_detail.pdf'
+	today_date = datetime.datetime.today()
+	filename = settings.MEDIA_ROOT + '\\' + today_date.strftime('%Y') + '\\' +  today_date.strftime('%m') +  '\\' \
+			   + 'Demand_' + str(demand.id) +'_detail.pdf'
 	response = HttpResponse(content_type='application/pdf')
 	response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
@@ -175,38 +179,24 @@ def create_pdf(request, id_demand, ):
 	demand_price_all = "%s" %demand.price_all()
 
 	styles = getSampleStyleSheet()
-	temp = BytesIO()
+	# temp = BytesIO()
 
 #   Стили
-	style_par = ParagraphStyle("text", fontName="Times", 
-									   fontSize=12, 
-									   alignment = TA_LEFT, 
-									   spaceAfter=5, 
+	style_par = ParagraphStyle("text", fontName="Times",
+									   fontSize=12,
+									   alignment = TA_LEFT,
+									   spaceAfter=5,
 									   spaceBefore=5)
-	style_nametable = ParagraphStyle("text", fontName="Times", 
-									  fontSize=14, 
-									  alignment = TA_CENTER, 
-									  spaceAfter=15, 
+	style_nametable = ParagraphStyle("text", fontName="Times",
+									  fontSize=14,
+									  alignment = TA_CENTER,
+									  spaceAfter=15,
 									  spaceBefore=30 )
-	style_title = ParagraphStyle("text",fontName="Times", 
-										fontSize=18, 
-										alignment = TA_CENTER, 
-										spaceAfter=30, 
+	style_title = ParagraphStyle("text",fontName="Times",
+										fontSize=18,
+										alignment = TA_CENTER,
+										spaceAfter=30,
 										spaceBefore=10 )
-	style_footer_p = ParagraphStyle("text", fontName="Times", 
-										  fontSize=12, 
-										  alignment = TA_LEFT, 
-										  spaceAfter=0, 
-										  spaceBefore=50,
-										  bulletIndent = 100,
-										  )
-	style_footer_d = ParagraphStyle("text", fontName="Times", 
-										  fontSize=12, 
-										  alignment = TA_LEFT, 
-										  spaceAfter=0, 
-										  spaceBefore=15,
-										  bulletIndent = 100,
-										   )
 
 	story = [Spacer(1,0.25*inch)]
 
@@ -227,7 +217,7 @@ def create_pdf(request, id_demand, ):
 	story.append(e)
 
 
-	doc2 = SimpleDocTemplate(temp, rightMargin=40, leftMargin=40, topMargin=2, bottomMargin=2)
+	doc2 = SimpleDocTemplate(filename , rightMargin=40, leftMargin=40, topMargin=2, bottomMargin=2)
 	blok_table = []
 	title = Paragraph("Позиции в заявке №{0}".format(demand_number), style= style_nametable)
 	story.append(title)
@@ -256,21 +246,26 @@ def create_pdf(request, id_demand, ):
 		story.append(tabbody)
 
 #   Оформление подвала
-	date_created = datetime.datetime.today().strftime("%d.%m.%Y")
-	tablefooter = [[u'Подписи', u'Дата']]
-	tabf = Table(tablefooter, rowHeights=20, colWidths=200  )
-	tabf.setStyle(TableStyle([
-				('FONT', (0, 0), (1, 0), 'Times', 10),
-				('ALIGN', (0, 0), (0, 0), 'LEFT'),
-				('ALIGN', (1, 0), (1, 0), 'RIGHT'),
-				]))
-	story.append(tabf)
-	
+	date_created = today_date.strftime("%d.%m.%Y")
+	user_created = request.user.last_name + ' ' + request.user.first_name + ' '
+	tablefooter = [[u'Подписи:', u'Дата:      '], [u'{0}'.format(user_created), u'{0}'.format(date_created)]]
+	tabfoo = Table(tablefooter, rowHeights=30, colWidths=200, spaceBefore=50)
+
+	tabfoo.setStyle(TableStyle([('FONT', (0, 0), (-1, -1), 'Times', 11), ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                            ('ALIGN', (1, 0), (1, -1), 'RIGHT'), ]))
+
+	story.append(tabfoo)
 
 	doc2.build(story)
-	pdf = temp.getvalue()
-	response.write(pdf)
-	
-	temp.close()
+	# f = open('test.pdf', 'w')
+	# f.write(str(temp.getpdfdate()))
+	# f.close()
 
-	return response
+	# pdf = temp.getvalue()
+	# response.write(pdf)
+	# temp.close()
+
+	pdf_url = settings.MEDIA_URL + today_date.strftime('%Y') + '/' +  today_date.strftime('%m') +  '/' \
+			   + 'Demand_' + str(demand.id) + '_detail.pdf'
+
+	return HttpResponse(pdf_url)
