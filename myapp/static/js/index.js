@@ -1,6 +1,6 @@
 function create_pdf()
 {
-    $.get('create_pdf/', function (url) {
+    $.get('documents/create_pdf/', function (url) {
         window.open(url);
     })
 }

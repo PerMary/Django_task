@@ -3,30 +3,35 @@
 <head>
 </head>
 <body>
-    <div class="title_info_demand">
-        <p><b>Просмотр всех созданных документов по заявке №{{ demand.id }}</b></p>
-    </div>
-    <div align="center">
-        <div class="table_style">
-            <table width="1000" align="center">
-                <thead>
-                    <tr>
-                        <th>Дата создания</th>
-                        <th>Пользователь</th>
-                        <th>Название документа</th>
-                        <th>PDF</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td bgcolor="#d8cce6">{{ documents.date_create }}</td>
-                        <td bgcolor="#d8cce6">{{ documents.user_create }}</td>
-                        <td bgcolor="#d8cce6">{{ documents.name_doc }}</td>
-                        <td bgcolor="#d8cce6"></td>
-                    </tr>
-                </tbody>
-            </table>
+    {% if documents|length > 0 %}
+        <div class="title_info_demand">
+            <p><b>Просмотр всех созданных документов по заявке {{ document.id_demand }}</b>
+            </p>
         </div>
-    </div>
+        <div align="center">
+            <div class="table_style">
+                <table width="1000" align="center">
+                    <thead>
+                        <tr>
+                            <th>Дата создания документа</th>
+                            <th>Пользователь создавший документ</th>
+                            <th>PDF документ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                        <tr>
+                            <td bgcolor="#d8cce6">{{ document.date_create }}</td>
+                            <td bgcolor="#d8cce6">{{ document.user_create.last_name }} {{ document.user_create.first_name }} {{ document.user_create.middle_name }}</td>
+                            <td bgcolor="#d8cce6"><a href="{{ document.url }} "><i class="material-icons">insert_drive_file</i></a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+         <p class="delete_text" align="center">Нет созданных документов для данной заявки</p>
+    {% endif %}
 </body>
 {% endblock %}
